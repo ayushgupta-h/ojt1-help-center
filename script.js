@@ -123,35 +123,17 @@ document.addEventListener('DOMContentLoaded', () => {
         aiLoading.classList.remove('hidden');
 
         try {
-            // Call our own backend server
-            const response = await fetch('/api/ask-ai', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ query })
-            });
-
-            const data = await response.json();
-            console.log('Backend Response:', data); // Debug log
-
-
+            // Call Pollinations.ai directly (Frontend-only approach)
+            const prompt = `You are a helpful customer support assistant. Answer concisely: ${query}`;
+            const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(prompt)}`);
 
             if (!response.ok) {
-                throw new Error(data.error?.message || `API Error: ${response.statusText}`);
+                throw new Error(`AI API Error: ${response.statusText}`);
             }
 
-            if (data.candidates && data.candidates[0].content) {
-                const answer = data.candidates[0].content.parts[0].text;
-                aiContent.innerHTML = answer;
-            } else {
-                console.warn('No candidates returned', data);
-                let message = "I couldn't find an answer to that question.";
-                if (data.promptFeedback) {
-                    message += ` (Feedback: ${JSON.stringify(data.promptFeedback)})`;
-                }
-                aiContent.innerHTML = message;
-            }
+            const textResponse = await response.text();
+            aiContent.innerHTML = textResponse;
+
         } catch (error) {
             console.error('Error fetching AI response:', error);
             aiContent.innerHTML = `<div style="color: #ef4444;">Sorry, something went wrong: ${error.message}</div>`;
